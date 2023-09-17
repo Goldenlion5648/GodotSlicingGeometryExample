@@ -10,10 +10,10 @@ config_version=5
 
 [application]
 
-config/name="Geometry"
+config/name="SlicingShapesExample"
 run/main_scene="res://drawing.tscn"
 config/features=PackedStringArray("4.1", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://thumbnail.png"
 
 [input]
 
