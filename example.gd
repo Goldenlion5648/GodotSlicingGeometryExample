@@ -5,9 +5,13 @@ var starting_polygon: Polygon2D
 var wire_remaining = 3000
 
 var geometry_mode_pos = 0
-var geometry_modes: Array[Callable] = [Geometry2D.intersect_polygons, Geometry2D.merge_polygons, 
-			Geometry2D.exclude_polygons, Geometry2D.clip_polygons]
-
+var geometry_modes: Array[Callable] = [
+			Geometry2D.intersect_polygons, 
+			Geometry2D.merge_polygons, 
+			Geometry2D.exclude_polygons, 
+			Geometry2D.clip_polygons,
+]
+# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	starting_polygon = Polygon2D.new()
 	self.add_child(starting_polygon)
@@ -20,16 +24,6 @@ func _ready() -> void:
 	self.add_child(current_line)
 	current_line.default_color = Color.BLACK
 	current_line.joint_mode = Line2D.LINE_JOINT_ROUND
-	print(geometry_modes[geometry_mode_pos])
-
-
-func _process(delta: float) -> void:
-	place_point()
-	$CanvasLayer/wire_label.text = "Wire Remaining %d" % wire_remaining
-	
-	if Input.is_action_just_pressed("restart"):
-		get_tree().reload_current_scene()
-
 
 func place_point():
 	var mouse_pos = get_viewport().get_mouse_position()
@@ -39,11 +33,11 @@ func place_point():
 			0 <= mouse_pos.y and mouse_pos.y < image.get_height()
 			):
 		return
+	
 	if Input.is_action_just_pressed("change_mode"):
 		geometry_mode_pos = (geometry_mode_pos + 1) % len(geometry_modes)
 		print(geometry_modes[geometry_mode_pos])
-		
-
+	
 	if Input.is_action_just_pressed("place_point"):
 		print('drew')
 		var dist_to_last_point = 0
@@ -55,19 +49,11 @@ func place_point():
 			current_line.add_point(mouse_pos)
 			complete_shape()
 			adjust_for_first_point()
-		
-
-func adjust_for_first_point():
-	var extra = Vector2(3, 3)
-	if current_line.get_point_count() == 1:
-		current_line.add_point(current_line.get_point_position(0) + extra)
-	elif current_line.get_point_position(0) + extra == current_line.get_point_position(1) :
-		current_line.remove_point(1)
-
 
 func complete_shape():
 	var dist = current_line.points[0].distance_to(current_line.points[-1])
 	prints("dist", dist)
+	
 	var in_slicing_mode = geometry_modes[geometry_mode_pos] == Geometry2D.clip_polygons
 	if len(current_line.points) > 1 and (dist < 20 or in_slicing_mode):
 		print("shape complete!")
@@ -84,3 +70,19 @@ func complete_shape():
 			intersection_polygon.set_polygon(overlapping_polygon)
 			print(intersection_polygon.polygon)
 		self.remove_child(starting_polygon)
+	
+
+
+func adjust_for_first_point():
+	var extra = Vector2(3, 3)
+	if current_line.get_point_count() == 1:
+		current_line.add_point(current_line.get_point_position(0) + extra)
+	elif current_line.get_point_position(0) + extra == current_line.get_point_position(1) :
+		current_line.remove_point(1)
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	place_point()
+	$CanvasLayer/wire_label.text = "Wire Remaining %d" % wire_remaining
+	if Input.is_action_just_pressed("restart"):
+		get_tree().reload_current_scene()
